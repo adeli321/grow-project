@@ -3,9 +3,9 @@
 import json
 from use_postgres import UseDatabase
 
-db_creds = {'host': 'localhost',
-            'user': 'anthonydelivanis',
-            'database': 'anthonydelivanis'}
+db_creds = {'host': '',
+            'user': '',
+            'database': ''}
 
 # 1 variable extraction
 with open('sensor_data_4.json', 'r') as reader:

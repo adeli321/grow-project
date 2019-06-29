@@ -6,7 +6,7 @@ from pprint import pprint
 
 def grab_observations(sensor_id, variable, start, end):
     url = 'https://grow.thingful.net/api/timeSeries/get'
-    header = {'Authorization': 'Bearer 8tze34c9qt-7320dcbe17138840d554e4b5fd0c6a0f'}
+    header = {'Authorization': ''}
     payload2 = {'Readers': [{'DataSourceCode': 'Thingful.Connectors.GROWSensors',
                             'Settings': {'LocationCodes': ['6dngspdq'], 
                                     'VariableCodes': ['Thingful.Connectors.GROWSensors.light'],

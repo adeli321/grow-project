@@ -13,16 +13,16 @@ from typing import List
 from use_postgres import UseDatabase
 
 db_creds = {
-    'host': 'localhost',
-    'user': 'anthonydelivanis',
-    'database': 'anthonydelivanis'
+    'host': '',
+    'user': '',
+    'database': ''
 }
 
 def query_grow_data(sensor_id: str, start: str, end: str) -> List:
     """Query GROW API for temperature, soil moisture, light"""
     start_date = start.replace('T', '') # creates an additional string, tbd if that's ok
     end_date = end.replace('T', '')
-    header = {'Authorization': 'Bearer 8tze34c9qt-7320dcbe17138840d554e4b5fd0c6a0f'}
+    header = {'Authorization': ''}
     url = 'https://grow.thingful.net/api/timeSeries/get'
     payload = {'Readers': [{'DataSourceCode': 'Thingful.Connectors.GROWSensors',
                             'Settings': 
@@ -83,7 +83,7 @@ def query_wow_data(site_id: str, start: str, end: str) -> 'plot':
     """Query WOW API for temperature, rainfall, humidity"""
     start = dt.datetime.strptime(start, '%Y%m%dT%H%M%S').strftime('%Y-%m-%dT%H:%M:%S')
     end = dt.datetime.strptime(end, '%Y%m%dT%H%M%S').strftime('%Y-%m-%dT%H:%M:%S')
-    header = {'Ocp-Apim-Subscription-Key': 'cfcf626271be44f6ab25e52016a1afb7'}
+    header = {'Ocp-Apim-Subscription-Key': ''}
     url = 'https://apimgmt.www.wow.metoffice.gov.uk/api/observations/byversion'
     payload = {'site_id': site_id[0],
             'start_time': start, # 2019-05-24T20:00:00

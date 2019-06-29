@@ -9,9 +9,9 @@ app = Flask(__name__)
 CORS(app)
 # cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 db_creds = {
-    'host': 'localhost',
-    'user': 'anthonydelivanis',
-    'database': 'anthonydelivanis'
+    'host': '',
+    'user': '',
+    'database': ''
 }
 
 @app.route('/api/all_grow')
@@ -42,7 +42,7 @@ def get_me_grow() -> 'JSON':
     end = request.args.get('end', None)
     end = end.replace('-','').replace('T','').replace(':','')
     sensor_id = request.args.get('sensor_id', None)
-    header = {'Authorization': 'Bearer 8tze34c9qt-7320dcbe17138840d554e4b5fd0c6a0f'}
+    header = {'Authorization': ''}
     url = 'https://grow.thingful.net/api/timeSeries/get'
     payload = {'Readers': [{'DataSourceCode': 'Thingful.Connectors.GROWSensors',
                             'Settings': 
@@ -61,7 +61,7 @@ def get_me_wow() -> 'JSON':
     start = request.args.get('start', None)
     end = request.args.get('end', None)
     wow_site_id, distance = match_wow_site(sensor_id)
-    header = {'Ocp-Apim-Subscription-Key': 'cfcf626271be44f6ab25e52016a1afb7'}
+    header = {'Ocp-Apim-Subscription-Key': ''}
     url = 'https://apimgmt.www.wow.metoffice.gov.uk/api/observations/byversion'
     payload = {'site_id': wow_site_id,
             'start_time': start, # 2019-05-24T20:00:00

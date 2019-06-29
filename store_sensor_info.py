@@ -12,7 +12,7 @@ from typing import List
 def grab_grow_sensors() -> List:
     """Grabs all GROW sensor id's, last upload date, days active"""
     url = 'https://grow.thingful.net/api/entity/timeSeriesInformations/get'
-    header = {'Authorization': 'Bearer 8tze34c9qt-7320dcbe17138840d554e4b5fd0c6a0f'}
+    header = {'Authorization': ''}
     response = requests.post(url, headers=header)
     json_object = response.json()
     current_sensors = []
@@ -48,7 +48,7 @@ def grab_grow_sensors() -> List:
 def lookup_location_coords(sensor_list: List, gcloud_api_key: str) -> List:
     """Find and append location coords, address, owner id to GROW sensor list"""
     url = 'https://grow.thingful.net/api/entity/locations/get'
-    header = {'Authorization': 'Bearer 8tze34c9qt-7320dcbe17138840d554e4b5fd0c6a0f'}
+    header = {'Authorization': ''}
     payload = {'DataSourceCodes': ['Thingful.Connectors.GROWSensors']}
     response = requests.post(url, headers=header, json=payload)
     json_object = response.json()
@@ -69,7 +69,7 @@ def lookup_location_coords(sensor_list: List, gcloud_api_key: str) -> List:
 def get_address(latlng: str, api_key: str) -> List:
     """Query Google Geocoding API to reverse geocode latlng to full address"""
     url = 'https://maps.googleapis.com/maps/api/geocode/json' 
-    payload = {'latlng': latlng, 'key': api_key} # 'AIzaSyDDPQDF7E6gWlHMlbTUF5ECTiZw9JVdX9U'
+    payload = {'latlng': latlng, 'key': api_key} 
     response = requests.get(url, params=payload)
     json_object = response.json()
     full_address = []
@@ -82,9 +82,9 @@ def get_address(latlng: str, api_key: str) -> List:
 
 def insert_to_postgres(sensor_list: List) -> None:
     """Insert sensor list details to local Postgres DB"""
-    db_creds = {'host': 'localhost',
-            'user': 'anthonydelivanis',
-            'database': 'anthonydelivanis'}
+    db_creds = {'host': '',
+            'user': '',
+            'database': ''}
     with UseDatabase(db_creds) as cursor:
         for i in sensor_list:
             cursor.execute("""INSERT INTO all_sensors_0625

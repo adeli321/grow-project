@@ -6,7 +6,7 @@ import requests
 # Grab data source variables
 # entity/dataSourceVariables/get endpoint
 url = 'https://grow.thingful.net/api/entity/dataSourceVariables/get'
-header = {'Authorization': 'Bearer 8tze34c9qt-7320dcbe17138840d554e4b5fd0c6a0f'}
+header = {'Authorization': ''}
 response = requests.post(url, headers=header)
 
 # Grab all GROW sensor locations
@@ -59,7 +59,7 @@ response4 = requests.post(url4, headers=header, stream=True)
 # Grab all user groups
 # /Groups endpoint
 url5 = 'https://apimgmt.www.wow.metoffice.gov.uk/api/Groups'
-header2 = {'Ocp-Apim-Subscription-Key': 'cfcf626271be44f6ab25e52016a1afb7'}
+header2 = {'Ocp-Apim-Subscription-Key': ''}
 response5 = requests.get(url5, headers=header2)
 
 # Gets all sites registered to a group - doesn't seem to return valid site id's... 
@@ -100,7 +100,7 @@ response6 = requests.get(url6, headers=header2)
 # Search all sites
 # /sites/search endpoint -  all calls to this endpoint seem to hang in 'buffering' stage
 url7 = 'https://apimgmt.www.wow.metoffice.gov.uk/api/sites/search'
-header3 = {'Ocp-Apim-Subscription-Key': 'cfcf626271be44f6ab25e52016a1afb7',
+header3 = {'Ocp-Apim-Subscription-Key': '',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36'
         }       
 payload3 = {'longitudeStart': -8.33661, 

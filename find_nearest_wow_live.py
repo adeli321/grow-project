@@ -6,9 +6,9 @@ from typing import List
 from math import cos, asin, sqrt
 from use_postgres import UseDatabase
 
-db_creds = {'host': 'localhost',
-            'user': 'anthonydelivanis',
-            'database': 'anthonydelivanis'}
+db_creds = {'host': '',
+            'user': '',
+            'database': ''}
 
 def distance(lat1: int, lon1: int, lat2: int, lon2: int) -> int:
     """Use Haversine formula to compute distance between lat/lon coordinates"""
@@ -30,7 +30,7 @@ def close_distance(data: List) -> List:
 def grab_grow_ids() -> List:
     """Grabs distinct sensor ids and coordinates from grow location api"""
     url = 'https://grow.thingful.net/api/entity/locations/get'
-    header = {'Authorization': 'Bearer 8tze34c9qt-7320dcbe17138840d554e4b5fd0c6a0f'}
+    header = {'Authorization': ''}
     payload = {'DataSourceCodes': ['Thingful.Connectors.GROWSensors']}
     response = requests.post(url, headers=header, json=payload)
     json_object = response.json()

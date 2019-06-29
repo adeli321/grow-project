@@ -13,7 +13,7 @@ def query_grow_data(sensor_id: str, start: str, end: str) -> List:
     """Query GROW API for temperature, soil moisture, light"""
     start_date = start.replace('T', '')
     end_date = end.replace('T', '')
-    header = {'Authorization': 'Bearer 8tze34c9qt-7320dcbe17138840d554e4b5fd0c6a0f'}
+    header = {'Authorization': ''}
     url = 'https://grow.thingful.net/api/timeSeries/get'
     payload = {'Readers': [{'DataSourceCode': 'Thingful.Connectors.GROWSensors',
                             'Settings': 
