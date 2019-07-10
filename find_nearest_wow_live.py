@@ -10,6 +10,13 @@ db_creds = {'host': '',
             'user': '',
             'database': ''}
 
+aurora_creds = {
+    'host': '',
+    'port': '',
+    'user': '',
+    'password': ''
+}
+
 def distance(lat1: int, lon1: int, lat2: int, lon2: int) -> int:
     """Use Haversine formula to compute distance between lat/lon coordinates"""
     p = 0.017453292519943295
@@ -46,12 +53,13 @@ def grab_grow_ids() -> List:
 
 def grab_wow_ids_and_coords() -> List:
     """Grabs WOW site ids and location coordinates from static file"""
-    with open('wow_api/wow_observations_europe.json', 'r') as reader:
+    with open('wow_api/0703_day_wow_observations_europe.json', 'r') as reader:
         json_object = json.load(reader)
         wow_site_list = []
         for i in range(len(json_object['Object'])):
             try:
-                if json_object['Object'][i]['RainfallAmount_Millimetre'] is not None:
+                if json_object['Object'][i]['RainfallAmount_Millimetre'] is not None and \
+                    json_object['Object'][i]['DryBulbTemperature_Celsius'] is not None:
                     site_id = json_object['Object'][i]['SiteId']
                     lat = json_object['Object'][i]['Latitude']
                     lon = json_object['Object'][i]['Longitude']
@@ -81,9 +89,18 @@ def find_nearest_wow(grow_current_sensors: List, wow_site_list: List) -> List:
 
 def insert_to_db(grow_current_sensors: List) -> None:
     """Insert the grow/WOW sensor/station mappings to local Postgres"""
-    with UseDatabase(db_creds) as cursor:
+    with UseDatabase(aurora_creds) as cursor:
+        sql_create = """CREATE TABLE IF NOT EXISTS grow_to_wow_mapping(
+                        sensor_id varchar(8),
+                        grow_lat numeric, 
+                        grow_lon numeric,
+                        site_id varchar(36),
+                        wow_lat numeric, 
+                        wow_lon numeric,
+                        distance numeric);"""
+        cursor.execute(sql_create)
         for i in grow_current_sensors:
-            cursor.execute("""INSERT INTO grow_to_wow_mapping_0625
+            cursor.execute("""INSERT INTO grow_to_wow_mapping
                             VALUES(%s, %s, %s, %s, %s, %s, %s)""",
                             (i[0], i[1], i[2], i[3][0], i[3][1], i[3][2], i[4]))
 
