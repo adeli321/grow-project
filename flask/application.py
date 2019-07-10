@@ -5,7 +5,8 @@ from flask_cors import CORS, cross_origin
 from flask import Flask, jsonify, request, Response
 from use_postgres import UseDatabase
 
-app = Flask(__name__)
+application = Flask(__name__)
+app = application
 CORS(app)
 # cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 db_creds = {
@@ -14,20 +15,19 @@ db_creds = {
     'database': ''
 }
 
-@app.route('/api/all_grow')
-def fetch_all_grow_info() -> 'JSON':
-    with UseDatabase(db_creds) as cursor:
-        SQL = """SELECT * FROM all_sensors_0618 limit 20;"""
-        cursor.execute(SQL)
-        response = cursor.fetchall()
-    return jsonify(response)
+aurora_creds = {
+    'host': '',
+    'port': 5432,
+    'user': '',
+    'password': ''
+}
 
 @app.route('/api/all_grow_true_json')
 def fetch_all_json() -> 'JSON':
-    with UseDatabase(db_creds) as cursor:
+    with UseDatabase(aurora_creds) as cursor:
         resp_list = []
-        SQL = """SELECT row_to_json(all_sensors_0625)
-                FROM all_sensors_0625;"""
+        SQL = """SELECT row_to_json(all_sensor_info)
+                FROM all_sensor_info;"""
         cursor.execute(SQL)
         response = cursor.fetchall()
         for i in response:
@@ -78,7 +78,7 @@ def get_me_wow() -> 'JSON':
         data_dict['air_temp'].append(i['DryBulbTemperature_Celsius'])
         data_dict['rainfall'].append(i['RainfallAmount_Millimetre'])
         data_dict['datetime'].append(i['ReportEndDateTime'])
-    data_dict['distance'].append(distance)
+    data_dict['distance'].append(float(distance))
     return jsonify(data_dict)
 
 @app.route('/api/match_grow_to_wow')
@@ -89,9 +89,9 @@ def match_closest_wow() -> str:
 
 def match_wow_site(sensor_id: str) -> str:
     """Find closest WOW site to select grow sensor"""
-    with UseDatabase(db_creds) as cursor:
+    with UseDatabase(aurora_creds) as cursor:
         cursor.execute("""SELECT site_id, distance
-                            FROM grow_to_wow_mapping_0625
+                            FROM grow_to_wow_mapping
                             WHERE sensor_id = %s;""", (sensor_id,))
         site_id = cursor.fetchone() # ('c1d3cfdd-4829-e911-9462-0003ff59610a',)
         # site_id = cursor.fetchall() # [('c1d3cfdd-4829-e911-9462-0003ff59610a',)]
