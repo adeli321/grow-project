@@ -9,6 +9,17 @@ from use_postgres import UseDatabase
 from datetime import datetime
 from typing import List
 
+db_creds = {'host': '',
+            'user': '',
+            'database': ''}
+
+aurora_creds = {
+    'host': '',
+    'port': 5432,
+    'user': '',
+    'password': ''
+}
+
 def grab_grow_sensors() -> List:
     """Grabs all GROW sensor id's, last upload date, days active"""
     url = 'https://grow.thingful.net/api/entity/timeSeriesInformations/get'
@@ -45,6 +56,36 @@ def grab_grow_sensors() -> List:
     # sensor_info_unique = list(k for k,_ in itertools.groupby(sensor_info_list)) 
     # return sensor_info_unique
 
+def filter_for_new_sensor_updates(new_sensor_list: List) -> List:
+    """Compare sensor info to Postgres table to see if the individual sensor 
+    info is already in the table. If not present, keep the sensor info for further 
+    processing and eventual insert into Postgres table"""
+    with UseDatabase(aurora_creds) as cursor:
+        sql_check = """SELECT EXISTS (SELECT 1 FROM pg_tables
+                                        WHERE tablename = 'all_sensor_info');"""
+        cursor.execute(sql_check)
+        response = cursor.fetchone()
+        if response[0] == True:
+            sql_collect = """SELECT row_to_json(all_sensor_info)
+                                FROM all_sensor_info;"""
+            cursor.execute(sql_collect)
+            all_stored_sensors = cursor.fetchall()
+        else:
+            all_stored_sensors = []
+    stored_sensor_ids = []
+    for i in all_stored_sensors:
+        stored_sensor_ids.append(i[0]['sensor_id'])
+    new_sensor_info = []
+    for i in new_sensor_list:
+        if i[0] not in stored_sensor_ids:
+            new_sensor_info.append(i)
+        else:
+            for stored_sensor in all_stored_sensors:
+                if stored_sensor[0]['sensor_id'] == i[0] and \
+                    stored_sensor[0]['end_date'].replace('-','').replace(':','') != i[3]:
+                    new_sensor_info.append(i)
+    return new_sensor_info, stored_sensor_ids
+
 def lookup_location_coords(sensor_list: List, gcloud_api_key: str) -> List:
     """Find and append location coords, address, owner id to GROW sensor list"""
     url = 'https://grow.thingful.net/api/entity/locations/get'
@@ -80,14 +121,31 @@ def get_address(latlng: str, api_key: str) -> List:
         full_address.append('')
     return ' '.join(full_address)
 
-def insert_to_postgres(sensor_list: List) -> None:
+def insert_to_postgres(sensor_list: List, stored_sensor_ids: List) -> None:
     """Insert sensor list details to local Postgres DB"""
-    db_creds = {'host': '',
-            'user': '',
-            'database': ''}
-    with UseDatabase(db_creds) as cursor:
+    with UseDatabase(aurora_creds) as cursor:
+        sql_create = """CREATE TABLE IF NOT EXISTS all_sensor_info(
+                        sensor_id varchar(8),
+                        days_active integer, 
+                        start_date timestamp, 
+                        end_date timestamp, 
+                        latitude numeric, 
+                        longitude numeric, 
+                        address varchar(140), 
+                        owner_id varchar(36));"""
+        cursor.execute(sql_create)
         for i in sensor_list:
-            cursor.execute("""INSERT INTO all_sensors_0625
+            if i[0] in stored_sensor_ids:
+                cursor.execute("""UPDATE all_sensor_info
+                            SET days_active = %s,
+                            start_date = %s,
+                            end_date = %s
+                            WHERE sensor_id = %s""",
+                            (i[1], i[2], i[3], i[0]))
+                            # VALUES(%s, %s, %s, %s, %s, %s, %s, %s)""",
+                            # (i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7]))
+            else:
+                cursor.execute("""INSERT INTO all_sensor_info
                             VALUES(%s, %s, %s, %s, %s, %s, %s, %s)""",
                             (i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7]))
 
@@ -97,8 +155,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     sensor_info = grab_grow_sensors()
-    sensor_list = lookup_location_coords(sensor_info, args.gcloud_api_key)
-    insert_to_postgres(sensor_list)
+    new_sensor_info, stored_sensor_ids = filter_for_new_sensor_updates(sensor_info)
+    sensor_list = lookup_location_coords(new_sensor_info, args.gcloud_api_key)
+    insert_to_postgres(sensor_list, stored_sensor_ids)
 
 
 # old manual file lookup code
