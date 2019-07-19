@@ -25,6 +25,38 @@ function addInfoWindow(marker, message) {
         // Store new window in global variable 
         activeWindow = infoWindow; 
     });
+
+    google.maps.event.addListener(marker, 'click', function() {
+        // Clear all values in input boxes
+        document.getElementById('end_date').value = '';
+        document.getElementById('start_date').value = '';
+        document.getElementById('sensor_id').value = '';
+        // Match end date & insert to input box
+        var reg = /End Date\: (.*)<br>Sensor Id/;
+        var end = reg.exec(message)[1];
+        document.getElementById('end_date').value += end;
+        // Match start date & insert to input box
+        // Start date is the GROW start date, unless
+        // the range is larger than 9 days, 
+        // then the start date = end date minus 9 days.
+        var start_reg = /Start Date\: (.*)<br>End Date/;
+        var start = start_reg.exec(message)[1];
+        var start_date = new Date(start);
+        var end_date = new Date(end);
+        end_date.setDate(end_date.getDate()-9);
+        if (start_date > end_date) {
+            var start_date = start_date.toISOString().slice(0,-5);
+            document.getElementById('start_date').value += start_date;
+        } else {
+            var new_start_date = end_date.toISOString().slice(0,-5);
+            document.getElementById('start_date').value += new_start_date;
+        }
+        // Match sensor id & insert to input box
+        var sensor_reg = /Sensor Id\: (.*)/;
+        var sensor_id = sensor_reg.exec(message)[1];
+        document.getElementById('sensor_id').value += sensor_id;
+    });
+
     // Mouseover functions instead of click function
     // google.maps.event.addListener(marker, 'mouseover', function () {
     //     infoWindow.open(map, marker);
@@ -33,6 +65,33 @@ function addInfoWindow(marker, message) {
     //     infoWindow.close(map, marker);
     // });
 }
+
+// function getGrowWowData() {
+//     start = document.getElementById('start_date').value; 
+//     end = document.getElementById('end_date').value; 
+//     sensor_id = document.getElementById('sensor_id').value;
+//     params = {
+//         start: start, 
+//         end: end, 
+//         sensor_id: sensor_id
+//     }
+//     $.when(
+//         $.getJSON('http://0.0.0.0:8080/api/indiv_grow_data', params, function(grow_dat) {
+//             globalStore.grow_dat = grow_dat;
+//         }),
+//         $.getJSON('http://0.0.0.0:8080/api/get_wow_data', params, function(wow_dat) {
+//             globalStore.wow_dat = wow_dat;
+//         }
+//     ).then(function(){
+
+//     })
+// }
+
+// function getGrowWow() {
+//     $.when(
+
+//     )
+// }
 
 function getSensorData() {
     // Function which calls an api endpoint, receives data, 
@@ -50,26 +109,6 @@ function getGrowData() {
         sensor_id: sensor_id
     }
     $.getJSON('http://0.0.0.0:8080/api/indiv_grow_data', params, processGrowData);
-}
-
-function getWowData() {
-    start = document.getElementById('start_date').value; 
-    end = document.getElementById('end_date').value; 
-    sensor_id = document.getElementById('sensor_id').value;
-    params = {
-        start: start, 
-        end: end, 
-        sensor_id: sensor_id
-    }
-    $.getJSON('http://0.0.0.0:8080/api/get_wow_data', params, processWowData);
-}
-
-function processWowData(data) {
-    distance = data['distance'];
-    air_temperature = data['air_temp'];
-    datetimes = data['datetime'];
-    rainfall = data['rainfall'];
-    drawWowChart(distance, air_temperature, datetimes, rainfall);
 }
 
 function processGrowData(data) {
@@ -102,8 +141,70 @@ function processGrowData(data) {
     // air_temperature = data['Data'][0]['Data'];
     // soil_moisture = data['Data'][1]['Data'];
     // light = data['Data'][2]['Data'];
+    window.grow_air_temperature = air_temperature;
     drawGrowChart(air_temperature, soil_moisture, light);
 }
+
+function getWowData() {
+    start = document.getElementById('start_date').value; 
+    end = document.getElementById('end_date').value; 
+    sensor_id = document.getElementById('sensor_id').value;
+    params = {
+        start: start, 
+        end: end, 
+        sensor_id: sensor_id
+    }
+    $.getJSON('http://0.0.0.0:8080/api/get_wow_data', params, processWowData);
+}
+
+function processWowData(data) {
+    distance = data['distance'];
+    air_temperature = data['air_temp'];
+    datetimes = data['datetime'];
+    rainfall = data['rainfall'];
+    drawWowChart(distance, air_temperature, datetimes, rainfall);
+    drawGrowWow(window.grow_air_temperature, air_temperature, datetimes)
+}
+
+// $.when(processGrowData(), processWowData()).then(drawGrowWow);
+
+function drawGrowWow(grow_air_temp, wow_air_temp, datetimes) {
+    var data = new google.visualization.DataTable();
+    data.addColumn('datetime', 'datetime');
+    data.addColumn('number', 'grow_air_temp');
+    data.addColumn('number', 'wow_air_temp');
+    for (i = grow_air_temp.length - 1; i >= 0; i--) {
+        var date_str = grow_air_temp[i]['DateTime'];
+        var date_edit = date_str.slice(0,4) + '-' 
+                        + date_str.slice(4,6) + '-' 
+                        + date_str.slice(6,8) + 'T'
+                        + date_str.slice(8,10) + ':'
+                        + date_str.slice(10,12) + ':'
+                        + date_str.slice(12,14) 
+        var my_date = new Date(date_edit);
+        data.addRow([my_date, 
+            grow_air_temp[i]['Value'], 
+            null
+        ]);
+    }
+    for (i = wow_air_temp.length - 1; i >= 0; i--) {
+        var date_str = datetimes[i];
+        var my_date = new Date(date_str);
+        data.addRow([my_date,
+                    null,
+                    wow_air_temp[i]
+                ]);
+    }
+    var options = {
+        title: 'GROW/WOW Air Temperature Comparison',
+        legend: {position: 'bottom'},
+        width: 1200,
+        height: 600,
+    };
+    var chart = new google.visualization.LineChart(document.getElementById('grow_wow_chart'));
+    chart.draw(data, options);
+}
+
 
 function drawGrowChart(air_temperature, soil_moisture, light) {
     // var data = google.visualization.arrayToDataTable([
@@ -113,19 +214,32 @@ function drawGrowChart(air_temperature, soil_moisture, light) {
     //     ['Light', light]
     // ]);
     var data = new google.visualization.DataTable();
-    data.addColumn('string', 'datetime');
+    data.addColumn('datetime', 'datetime');
     data.addColumn('number', 'air_temp');
     data.addColumn('number', 'soil_moisture');
     data.addColumn('number', 'light');
 
     // iterates through array backwards to graph data
     // from past to recent
-    for (i=air_temperature.length-1; i>=0 ; i--) {
-        data.addRow([air_temperature[i]['DateTime'], 
+    for (i = air_temperature.length - 1; i >= 0; i--) {
+        var date_str = air_temperature[i]['DateTime'];
+        var date_edit = date_str.slice(0,4) + '-' 
+                        + date_str.slice(4,6) + '-' 
+                        + date_str.slice(6,8) + 'T'
+                        + date_str.slice(8,10) + ':'
+                        + date_str.slice(10,12) + ':'
+                        + date_str.slice(12,14) 
+        var my_date = new Date(date_edit);
+        data.addRow([my_date, 
                     air_temperature[i]['Value'],
                     soil_moisture[i]['Value'],
                     light[i]['Value']
                 ]);
+        // data.addRow([air_temperature[i]['DateTime'], 
+        //             air_temperature[i]['Value'],
+        //             soil_moisture[i]['Value'],
+        //             light[i]['Value']
+        //         ]);
     }
     // iterates through array forward
     // for (i = 0; i < air_temperature.length; i++) {
@@ -162,17 +276,19 @@ function drawGrowChart(air_temperature, soil_moisture, light) {
 
 function drawWowChart(distance, air_temperature, datetimes, rainfall) {
     var data = new google.visualization.DataTable();
-    data.addColumn('string', 'datetime');
+    data.addColumn('datetime', 'datetime');
     data.addColumn('number', 'air_temp');
     data.addColumn('number', 'rainfall');
-    for (i=air_temperature.length-1; i>=0 ; i--) {
-        data.addRow([datetimes[i],
+    for (i = air_temperature.length - 1; i >= 0; i--) {
+        var date_str = datetimes[i];
+        var my_date = new Date(date_str);
+        data.addRow([my_date,
                     air_temperature[i], 
                     rainfall[i],
                 ]);
     }
     var options = {
-        title: 'WOW Site Values ' + distance + ' km away',
+        title: 'WOW Site ' + distance + ' km away',
         legend: {position: 'bottom'},
         width: 1200,
         height: 600,
@@ -181,7 +297,7 @@ function drawWowChart(distance, air_temperature, datetimes, rainfall) {
     chart.draw(data, options);
 }
 
-function initMap(data, start, end) {
+function initMap(data) {
     // Create the map centered on the United Kingdom.
     // var dat = $.getJSON('http://0.0.0.0:8080/all_grow_true_json');
     // for (var index in dat) {console.log(data[index][0].address)};
@@ -191,16 +307,12 @@ function initMap(data, start, end) {
         mapTypeId: 'terrain'
     });
 
-    startfunc = function(start, end) {
-        alert("Start: " + start, "End: " + end)
-    }
-
     // Image to use for map pinpoint icon
     var image = {
-        url: 'http://chittagongit.com//images/google-maps-location-icon/google-maps-location-icon-2.jpg',
+        url: 'google-maps-location-icon.jpg',
         scaledSize : new google.maps.Size(12, 12),
     };
-
+    // http://chittagongit.com//images/google-maps-location-icon/google-maps-location-icon-2.jpg
     var grow;
     grow = data;
     for (var sensor in grow) {

@@ -20,7 +20,7 @@
     <p id="space"></p>
     <!-- Input window for number of towns to return -->
     <!-- On submit, launch the JavaScript defined function getNumberTowns -->
-    Please enter a start date and end date (max 10 day range) in format of year-mo-daThr:mn:sc 
+    Please enter a start date and end date (max 9 day range) in format of year-mo-daThr:mn:sc 
     <br>Start: 
     <input id="start_date" type="text" name="number_towns">
     End: 
@@ -28,13 +28,14 @@
     Enter GROW sensor id to look up data:
     <input id="sensor_id" type="text" name="number_towns">
 
-    <input type="submit" onclick="getGrowData()" value="Get GROW Data"><br>
+    <input type="submit" onclick="getGrowData(),getWowData()" value="Get GROW Data"><br>
     <input type="submit" onclick="getWowData()" value="Get WOW Data"><br>
     <input type="submit" onclick="getSensorData()" value="GiveMeAllSensorsPls"> 
     <!-- <p id="demo"></p>  -->
     
     <div id="grow_line_chart"></div>
     <div id="wow_line_chart"></div>
+    <div id="grow_wow_chart"></div>
     <!-- <div id="line_chart" style="width: 900px; height: 500px"></div> -->
     <div id="map"></div>
     <!-- Jquery & Javascript scripts to reference -->
