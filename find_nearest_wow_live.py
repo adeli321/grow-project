@@ -12,7 +12,7 @@ db_creds = {'host': '',
 
 aurora_creds = {
     'host': '',
-    'port': '',
+    'port': 5432,
     'user': '',
     'password': ''
 }
@@ -51,6 +51,25 @@ def grab_grow_ids() -> List:
     return grow_current_sensors
 #  [['005qg039', 38.1090933333333, -8.58671], ['005ssbsd', 0, 0], ['00vshs16', 48.0816172603591, 20.764303520279]]
 
+def grow_sensors_to_insert(grow_current_sensors: List) -> List:
+    with UseDatabase(aurora_creds) as cursor:
+        sql_table_check = """SELECT EXISTS (SELECT 1 FROM pg_tables
+                                            WHERE tablename = 'grow_to_wow_mapping');"""
+        cursor.execute(sql_table_check)
+        response = cursor.fetchone()
+        if response[0] == True:
+            sql_collect = """SELECT sensor_id
+                                FROM grow_to_wow_mapping;"""
+            cursor.execute(sql_collect)
+            all_stored_sensors = cursor.fetchall()
+        else:
+            all_stored_sensors = []
+    sensors_to_insert = []
+    for i in grow_current_sensors:
+        if i[0] not in [x[0] for x in all_stored_sensors]:
+            sensors_to_insert.append(i)
+    return sensors_to_insert
+
 def grab_wow_ids_and_coords() -> List:
     """Grabs WOW site ids and location coordinates from static file"""
     with open('wow_api/0703_day_wow_observations_europe.json', 'r') as reader:
@@ -69,25 +88,19 @@ def grab_wow_ids_and_coords() -> List:
     return wow_site_list
 # [['904966001', 52.256439, 20.565886], ['535dc74d-f949-e611-9401-0003ff59b0cc', 45.722650112859, 0.62060626745222]]
 
-def find_nearest_wow(grow_current_sensors: List, wow_site_list: List) -> List:
+def find_nearest_wow(sensors_to_insert: List, wow_site_list: List) -> List:
     """For each grow sensor, find the nearest WOW observation site"""
-    for i in range(len(grow_current_sensors)):
-        closest_wow = closest(wow_site_list, grow_current_sensors[i])
-        grow_current_sensors[i].append(closest_wow)
-    return grow_current_sensors
-        # ValueError: too many values to unpack (expected 2)
-        # closest_wow, distance = closest(wow_site_list, grow_current_sensors[i])
-        # grow_current_sensors[i].append([closest_wow, distance])
-
-        # works 
-        
+    for i in range(len(sensors_to_insert)):
+        closest_wow = closest(wow_site_list, sensors_to_insert[i])
+        sensors_to_insert[i].append(closest_wow)
+    return sensors_to_insert
 # [['005qg039', 38.1090933333333, -8.58671, ['2ce01a20-fc29-e911-9461-0003ff596eab', 38.532, -9.012]], 
 # ['005ssbsd', 0, 0, ['c1d3cfdd-4829-e911-9462-0003ff59610a', 36.70756531, 3.1598618]], 
 # ['00vshs16', 48.0816172603591, 20.764303520279, ['3ac29743-01ce-e811-a8ec-0003ff59b2da', 47.3089, 19.8311]]]
 
 
 
-def insert_to_db(grow_current_sensors: List) -> None:
+def insert_to_db(mappings_and_distance: List) -> None:
     """Insert the grow/WOW sensor/station mappings to local Postgres"""
     with UseDatabase(aurora_creds) as cursor:
         sql_create = """CREATE TABLE IF NOT EXISTS grow_to_wow_mapping(
@@ -99,14 +112,15 @@ def insert_to_db(grow_current_sensors: List) -> None:
                         wow_lon numeric,
                         distance numeric);"""
         cursor.execute(sql_create)
-        for i in grow_current_sensors:
+        for i in mappings_and_distance:
             cursor.execute("""INSERT INTO grow_to_wow_mapping
                             VALUES(%s, %s, %s, %s, %s, %s, %s)""",
                             (i[0], i[1], i[2], i[3][0], i[3][1], i[3][2], i[4]))
 
 if __name__ == '__main__':
-    grow_sensor_ids = grab_grow_ids()
+    all_grow_sensor_ids = grab_grow_ids()
+    sensors_to_insert = grow_sensors_to_insert(all_grow_sensor_ids)
     wow_site_list = grab_wow_ids_and_coords()
-    sensor_site_mappings = find_nearest_wow(grow_sensor_ids, wow_site_list)
+    sensor_site_mappings = find_nearest_wow(sensors_to_insert, wow_site_list)
     mappings_and_distance = close_distance(sensor_site_mappings)
     insert_to_db(mappings_and_distance)
