@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Circles</title>
+    <style>
+      #map {
+        height: 90%;
+        width: 50%;
+        /* margin-left: 500; */
+        /* left: 50%; */
+        float: right;
+        /* margin-top: 0%; */
+        /* position:absolute;
+        top: 0; */
+      }
+      #texty {
+          float: left;
+          position: absolute;
+          top: 120px;
+          /* left: 50px; */
+          /* top: 0;
+          left: 0; */
+          padding-left: 45px;
+          padding-right: 45px;
+          background-color: rgba(53, 167, 68, 0.9);
+          font-size: 20px;
+          /* opacity: 0.1; */
+          color: #764610;
+          font-family: "Noto Sans", sans-serif;
+          /* text-align: center; */
+      }
+      #small_text {
+        font-size: 14px;
+      }
+      .button {
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        padding: 8px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 12px;
+        }
+      #grow_anomaly_date {
+        clear: both;    
+      }
+      #grow_health_status {
+        clear: both;
+      }
+      
+      html, body {
+        /* background-color: #F7E1CC; */
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #grow_line_chart {
+          clear: both;
+          float: center;
+          position: relative;
+          margin-top:10px;
+      }
+      .ui-autocomplete {
+        overflow: auto;
+        border: 1px solid #CBD3DD;
+        background: #FFF;
+        position: absolute;
+    }
+    .bold-green-font {
+    font-weight: bold;
+    color: green;
+    }
+
+    .bold-font {
+        font-weight: bold;
+    }
+
+    .right-text {
+        text-align: right;
+    }
+
+    .large-font {
+        font-size: 15px;
+    }
+
+    .italic-darkblue-font {
+        font-style: italic;
+        color: darkblue;
+    }
+
+    .italic-purple-font {
+        font-style: italic;
+        color: purple;
+    }
+
+    .underline-blue-font {
+        text-decoration: underline;
+        color: blue;
+    }
+
+    .gold-border {
+        border: 3px solid gold;
+    }
+
+    .deeppink-border {
+        border: 3px solid deeppink;
+    }
+
+    .orange-background {
+        background-color: orange;
+    }
+
+    .orchid-background {
+        background-color: orchid;
+    }
+
+    .beige-background {
+        background-color: beige;
+    }
+    </style>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript"></script>
+  </head>
+  <!-- <body style="background-image:url('https://growobservatory.org/images/splash.png');"> -->
+  <!-- <body> -->
+  <!-- <body style="background-image:url('https://growobservatory.org/images/og-grow.jpg');"> -->
+  <body style="background-image:url('https://metofficenews.files.wordpress.com/2016/08/vc-northern-hemisphere.png');">
+    <p id="space"></p>
+    <!-- Input window for number of towns to return -->
+    <!-- On submit, launch the JavaScript defined function getNumberTowns -->
+
+    <!-- <div style="text-align:left">Click on a GROW sensor marker on the map</div> -->
+    <img src="static/images/grow_logo.jpg" alt="GROW logo" style="float:left;width:256px;height:100px;">
+    <img src="static/images/wow_logo.png" alt="WOW logo" style="float:left;width:256px;height:100px;"><br>
+    <div id="texty">
+        <!-- Click on a GROW sensor marker on the map<br><br> -->
+    
+    <p>Search your GROW sensor by typing in the sensor's address: <br>
+        <input name="autocomplete" type="text" id="autocomplete" class="form-control input-lg"/></p>
+        <input type="submit" value="Plot Address" onclick="getGrowByAddress()" class="button"><br>
+    <p>Click on sensor icon to populate the Owner Id</p>
+    <p>GROW owner id: <input id="owner_id" type="text" name="owner_id">
+    <input type="submit" value="Plot all sensors that I own" onclick="getGrowByOwner()" class="button"></p>
+
+    <input type="submit" onclick="getOwnerStats()" value="Show GROW Owner Statistics" class="button"><br>
+    <input type="submit" onclick="getHealthySensors()" value="Show Healthy Sensors Statistics" class="button"><br>
+    <input type="submit" onclick="getOwnerStats()" value="Show Recovered State Sensor Statistics" class="button"><br>
+    <input type="submit" onclick="getOwnerStats()" value="Show Faulty Sensor Statistics" class="button">
+    
+    
+    <br>
+
+    <input type="submit" onclick="getSensorData()" value="Plot All GROW Sensors" class="button">
+
+    GROW sensor id:
+    <input id="sensor_id" type="text" name="number_towns"><br>
+    Start: 
+    <input id="start_date" type="text" name="number_towns">
+    End: 
+    <input id="end_date" type="text" name="number_towns"><br>
+    <div id="small_text">Start date and End date (max 9 day range) <br>
+    must be in format of year-mo-daThr:mn:sc</div>
+    <input type="submit" onclick="getGrowData(),checkGrowFaults()" value="Get GROW Data" class="button"><br></div>
+    <div id="map"></div> 
+    
+
+    <p id="demo"></p> 
+    <div id="grow_health_data_1"></div>
+    <div id="grow_health_data_2"></div>
+    <div id="grow_health_status"></div>
+    <div id="grow_anomaly_date"></div>
+    <!-- <button onclick="clearBox('grow_line_chart')"> -->
+    <input type="submit" onclick="clearBox('owner_stats_table')" value="Clear Charts" style="float: right;" class="button">
+    <div id="grow_line_chart"></div>
+    <div id="wow_line_chart"></div>
+    <div id="grow_wow_temp_chart"></div>
+    <div id="grow_wow_rainfall_chart"></div>
+    <div id="owner_stats_table"></div>
+    <div id="healthy_stats_table"></div>
+    <!-- <img src="https://growobservatory.org/images/splash.png" alt="Flowers in Chania"> -->
+    <!-- <div id="line_chart" style="width: 900px; height: 500px"></div> -->
+    <!-- <div id="map"></div> -->
+    <!-- Jquery & Javascript scripts to reference -->
+    <script type="text/javascript" src="static/javascript/jquery-3.3.1.js"></script>
+    <script type="text/javascript" src="static/javascript/owner_map.js"></script>
+    <script src="//code.jquery.com/ui/1.12.0/jquery-ui.js" ></script>
+    
+    <!-- I use an API key created from my GCloud account to 
+        allow Google Maps API usage -->
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDDPQDF7E6gWlHMlbTUF5ECTiZw9JVdX9U&callback=initMap">
+    </script>
+  </body>
+</html>
