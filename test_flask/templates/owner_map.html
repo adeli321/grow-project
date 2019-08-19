@@ -26,7 +26,8 @@
           background-color: rgba(53, 167, 68, 0.9);
           font-size: 20px;
           /* opacity: 0.1; */
-          color: #764610;
+          color: #000000;
+          /* 764610 */
           font-family: "Noto Sans", sans-serif;
           /* text-align: center; */
       }
@@ -149,8 +150,8 @@
 
     <input type="submit" onclick="getOwnerStats()" value="Show GROW Owner Statistics" class="button"><br>
     <input type="submit" onclick="getHealthySensors()" value="Show Healthy Sensors Statistics" class="button"><br>
-    <input type="submit" onclick="getOwnerStats()" value="Show Recovered State Sensor Statistics" class="button"><br>
-    <input type="submit" onclick="getOwnerStats()" value="Show Faulty Sensor Statistics" class="button">
+    <input type="submit" onclick="getRecoveredSensors()" value="Show Recovered State Sensor Statistics" class="button"><br>
+    <input type="submit" onclick="getFaultySensors()" value="Show Faulty Sensor Statistics" class="button">
     
     
     <br>
@@ -175,13 +176,17 @@
     <div id="grow_health_status"></div>
     <div id="grow_anomaly_date"></div>
     <!-- <button onclick="clearBox('grow_line_chart')"> -->
-    <input type="submit" onclick="clearBox('owner_stats_table')" value="Clear Charts" style="float: right;" class="button">
+    <input type="submit" onclick="clearBox('grow_line_chart')" value="Clear Charts" style="float: right;" class="button">
+    <input type="submit" onclick="clearBox('owner_stats_table'),clearBox('healthy_stats_table'),
+                        clearBox('recovered_stats_table'),clearBox('faulty_stats_table')" value="Clear Tables" style="float: right;" class="button">
     <div id="grow_line_chart"></div>
     <div id="wow_line_chart"></div>
     <div id="grow_wow_temp_chart"></div>
     <div id="grow_wow_rainfall_chart"></div>
-    <div id="owner_stats_table"></div>
+    <div id="owner_stats_table"></div><br>
     <div id="healthy_stats_table"></div>
+    <div id="recovered_stats_table"></div>
+    <div id="faulty_stats_table"></div>
     <!-- <img src="https://growobservatory.org/images/splash.png" alt="Flowers in Chania"> -->
     <!-- <div id="line_chart" style="width: 900px; height: 500px"></div> -->
     <!-- <div id="map"></div> -->

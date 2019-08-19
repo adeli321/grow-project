@@ -26,12 +26,20 @@
           background-color: rgba(53, 167, 68, 0.9);
           font-size: 24px;
           /* opacity: 0.1; */
-          color: #764610;
+          color: #000000;
+          /* 764610 */
           font-family: "Noto Sans", sans-serif;
           text-align: center;
       }
       #small_text {
         font-size: 14px;
+      }
+      .health_status {
+        float: left;
+        position:relative;
+        background-color: rgba(53, 167, 68, 0.9);
+        color: #764610;
+        font-size: 24px;
       }
       .button {
         background-color: #4CAF50;
@@ -52,6 +60,15 @@
       #grow_health_status {
         clear: both;
       }
+      #grow_line_chart {
+        /* width: auto;
+        margin: 0 auto !important; */
+        padding-top: 40px;
+        display: block;
+        margin: 0 auto;
+        text-align: center;
+        /* clear: both; */
+      }
       
       html, body {
         /* background-color: #F7E1CC; */
@@ -59,7 +76,8 @@
         margin: 0;
         padding: 0;
       }
-      #grow_line_chart {
+      #grow_line_chart
+        {
           clear: both;
           float: center;
           position: relative;
@@ -82,15 +100,16 @@
     <img src="static/images/wow_logo.png" alt="WOW logo" style="float:left;width:256px;height:100px;"><br>
     <div id="texty">
         <!-- Click on a GROW sensor marker on the map<br><br> -->
-
-    <p>Number of Healthy Sensors: {{healthy_sensors}}<br>
-        <input type="submit" onclick="getHealthyData()" value="Plot Healthy GROW Sensors" class="button"></p>
-    <p>Number of Recovered Sensors: {{recovered_sensors}}<br>
-        <input type="submit" onclick="getRecoveredData()" value="Plot Recovered GROW Sensors" class="button"></p>
-    <p>Number of Faulty Sensors: {{faulty_sensors}}<br>
-        <input type="submit" onclick="getFaultyData()" value="Plot Faulty GROW Sensors" class="button"></p>
-    <p>Total Number of GROW Sensors: {{number_sensors}}<br>
+    <p>GROW Sensor Global Summary</p>
+    <p>Total GROW Sensors: {{number_sensors}}<br>
         <input type="submit" onclick="getSensorData()" value="Plot All GROW Sensors" class="button"></p>
+    <p>Healthy Sensors: {{healthy_sensors}}<br>
+        <input type="submit" onclick="getHealthyData()" value="Plot Healthy GROW Sensors" class="button"></p>
+    <p>Recovered Sensors: {{recovered_sensors}}<br>
+        <input type="submit" onclick="getRecoveredData()" value="Plot Recovered GROW Sensors" class="button"></p>
+    <p>Faulty Sensors: {{faulty_sensors}}<br>
+        <input type="submit" onclick="getFaultyData()" value="Plot Faulty GROW Sensors" class="button"></p>
+    
 
     
     GROW sensor id:
@@ -101,46 +120,19 @@
     <input id="end_date" type="text" name="number_towns"><br>
     <div id="small_text">Start date and End date (max 9 day range) <br>
     must be in format of year-mo-daThr:mn:sc</div>
-    <input type="submit" onclick="getGrowData(),checkGrowFaults()" value="Get GROW Data" class="button"><br></div>
+    <input type="submit" onclick="getGrowData(),checkGrowFaults()" value="Get GROW Data" class="button"><br>
+    <!-- getWowData(), -->
+    <div id="grow_health_status"></div></div>
+    <!-- <div id="grow_anomaly_date"></div> -->
+
     <div id="map"></div> 
 
-    
-    
-    <!-- <div id="texty">GROW sensor id:</div>
-    <input id="sensor_id" type="text" name="number_towns"><br>
-    Start: 
-    <input id="start_date" type="text" name="number_towns">
-    End: 
-    <input id="end_date" type="text" name="number_towns"><br>
-    Start date and End date (max 9 day range) must be in format of year-mo-daThr:mn:sc<br>
-    <input type="submit" onclick="getGrowData(),checkGrowFaults()" value="Get GROW Data"><br>
-
-
-
-    <center>Click on a GROW sensor marker on the map</center><div id="map"></div><br> -->
-    <!-- <img src="grow_logo.jpg" alt="GROW logo" style="float:left;width:400px;height:100px;"><br>
-    <img src="wow_logo.png" alt="WOW logo" style="float:right;width:400px;height:100px;"><br> -->
-    
-    
-    <!-- <center>GROW sensor id:
-    <input id="sensor_id" type="text" name="number_towns"></center><br>
-    <center>Start: 
-    <input id="start_date" type="text" name="number_towns">
-    End: 
-    <input id="end_date" type="text" name="number_towns"></center><br>
-    <center>Start date and End date (max 9 day range) must be in format of year-mo-daThr:mn:sc</center><br> -->
-
-    <!-- <center><input type="submit" onclick="getGrowData(),getWowData(),checkGrowFaults()" value="Get GROW & WOW Data"></center><br> -->
-    <!-- <center><input type="submit" onclick="getGrowData(),checkGrowFaults()" value="Get GROW Data"></center><br> -->
-    <!-- <input type="submit" onclick="getWowData()" value="Get WOW Data"><br> -->
-
-    <p id="demo"></p> 
-    <div id="grow_health_data_1"></div>
-    <div id="grow_health_data_2"></div>
     <div id="grow_health_status"></div>
     <div id="grow_anomaly_date"></div>
-    <!-- <button onclick="clearBox('grow_line_chart')"> -->
-    <input type="submit" onclick="clearBox('grow_line_chart')" value="Clear Charts" style="float: right;" class="button">
+    <input type="submit" onclick="clearBox('grow_line_chart'),clearBox('wow_line_chart'),
+                                        clearBox('grow_wow_temp_chart'),clearBox('grow_wow_rainfall_chart')" 
+                                        value="Clear Charts" style="float: right;" class="button">
+
     <div id="grow_line_chart"></div>
     <div id="wow_line_chart"></div>
     <div id="grow_wow_temp_chart"></div>

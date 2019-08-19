@@ -136,16 +136,20 @@ function getHealthySensors() {
     $.getJSON('http://0.0.0.0:5000/healthy_stats', params, tableHealthyStats);
 }
 
-function getHealthyStats(data) {
-    // healthy_sensors = JSON.stringify(data['healthy']);
-    var healthy = data['healthy'];
+function getRecoveredSensors() {
+    owner_id = document.getElementById('owner_id').value; 
     params = {
-        healthy_sensors: healthy
+        owner_id: owner_id, 
     }
-    // params = {
-    //     healthy_sensors: jQuery.params.serializeArray(healthy_sensors)
-    // }
-    $.getJSON('http://0.0.0.0:5000/healthy_stats', params, tableHealthyStats);
+    $.getJSON('http://0.0.0.0:5000/recovered_stats', params, tableRecoveredStats);
+}
+
+function getFaultySensors() {
+    owner_id = document.getElementById('owner_id').value; 
+    params = {
+        owner_id: owner_id, 
+    }
+    $.getJSON('http://0.0.0.0:5000/faulty_stats', params, tableFaultyStats);
 }
 
 function tableHealthyStats(stats) {
@@ -162,18 +166,10 @@ function tableHealthyStats(stats) {
     data.addColumn('string', 'Sensor Id');
     data.addColumn('number', 'Battery Level (%)');
     data.addColumn('number', 'Soil Moisture (%)');
-    data.addColumn('number', 'Light ');
-    data.addColumn('number', 'Air Temperature (C)')
-    data.addColumn('string', 'DateTime')
-    for (i = 0; i = stats.length - 1; i++) {
-        // var date_str = stats[i][5];
-        // var date_edit = date_str.slice(0,4) + '-' 
-        //                 + date_str.slice(4,6) + '-' 
-        //                 + date_str.slice(6,8) + 'T'
-        //                 + date_str.slice(8,10) + ':'
-        //                 + date_str.slice(10,12) + ':'
-        //                 + date_str.slice(12,14) 
-        // var my_date = new Date(date_edit);
+    data.addColumn('number', 'Light (mol/m2/d)');
+    data.addColumn('number', 'Air Temperature (C)');
+    data.addColumn('string', 'Last Upload DateTime');
+    for (i = 0; i < stats.length; i++) {
         data.addRow([stats[i][0][0],
             stats[i][0][1],
             stats[i][0][2],
@@ -181,10 +177,154 @@ function tableHealthyStats(stats) {
             stats[i][0][4],
             stats[i][0][5]
         ]);
+    };
     var table = new google.visualization.Table(document.getElementById('healthy_stats_table'));
     table.draw(data, {showRowNumber: true, width: '50%', height: '100%', cssClassNames: cssClassNames});
+    // google.visualization.events.addListener(healthy_table, 'select', selectHandler);
+    google.visualization.events.addListener(table, 'select', function() {
+        var row = table.getSelection()[0].row;
+        var sensor_id = data.getValue(row, 0);
+        var end_date = new Date(data.getValue(row, 5));
+        var start_date = new Date(data.getValue(row, 5));
+        start_date.setDate(start_date.getDate()-9);
+        var end_date = end_date.toISOString().slice(0,-5);
+        var start_date = start_date.toISOString().slice(0,-5);
+        document.getElementById('end_date').value = '';
+        document.getElementById('start_date').value = '';
+        document.getElementById('sensor_id').value = '';
+        document.getElementById('start_date').value += start_date;
+        document.getElementById('end_date').value += end_date;
+        document.getElementById('sensor_id').value += sensor_id;
+
+      });
 }
+        // alert('You selected ' + data.getValue(row, 5));
+// function selectHandler(e) {
+//     // var selection = e.getDataTable().getValue()
+//     var selection = healthy_table.getSelection();
+//     for (i=0; i=selection.length; i++) {
+
+//     }
+//     // alert(e.getValue(visualization.getSelection()[0].row, 0));
+//     alert('A table row was selected ' + selection);
+//   }
+
+// function myClickHandler(){
+//     // var selection = myVis.getSelection();
+//     // var selection = document.getElementById('healthy_stats_table').getSelection();
+//     var selection = healthy_table.getSelection();
+//     alert(selection);
+// }
+    // var message = '';
+  
+    // for (var i = 0; i < selection.length; i++) {
+    //   var item = selection[i];
+    //   if (item.row != null && item.column != null) {
+    //     message += '{row:' + item.row + ',column:' + item.column + '}';
+    //   } else if (item.row != null) {
+    //     message += '{row:' + item.row + '}';
+    //   } else if (item.column != null) {
+    //     message += '{column:' + item.column + '}';
+    //   }
+    // }
+    // if (message == '') {
+    //   message = 'nothing';
+    // }
+    // alert('You selected ' + message);
+
+
+function tableRecoveredStats(stats) {
+    var data = new google.visualization.DataTable();
+    var cssClassNames = {
+        'headerRow': 'italic-darkblue-font large-font bold-font',
+        'tableRow': '',
+        'oddTableRow': 'beige-background',
+        'selectedTableRow': 'orange-background large-font',
+        'hoverTableRow': '',
+        'headerCell': 'gold-border',
+        'tableCell': '',
+        'rowNumberCell': 'underline-blue-font'};
+    data.addColumn('string', 'Sensor Id');
+    data.addColumn('number', 'Battery Level (%)');
+    data.addColumn('number', 'Soil Moisture (%)');
+    data.addColumn('number', 'Light (mol/m2/d)');
+    data.addColumn('number', 'Air Temperature (C)');
+    data.addColumn('string', 'Last Upload DateTime');
+    for (i = 0; i < stats.length; i++) {
+        data.addRow([stats[i][0][0],
+            stats[i][0][1],
+            stats[i][0][2],
+            stats[i][0][3],
+            stats[i][0][4],
+            stats[i][0][5]
+        ]);
+    };
+    var table = new google.visualization.Table(document.getElementById('recovered_stats_table'));
+    table.draw(data, {showRowNumber: true, width: '50%', height: '100%', cssClassNames: cssClassNames});
+    google.visualization.events.addListener(table, 'select', function() {
+        var row = table.getSelection()[0].row;
+        var sensor_id = data.getValue(row, 0);
+        var end_date = new Date(data.getValue(row, 5));
+        var start_date = new Date(data.getValue(row, 5));
+        start_date.setDate(start_date.getDate()-9);
+        var end_date = end_date.toISOString().slice(0,-5);
+        var start_date = start_date.toISOString().slice(0,-5);
+        document.getElementById('end_date').value = '';
+        document.getElementById('start_date').value = '';
+        document.getElementById('sensor_id').value = '';
+        document.getElementById('start_date').value += start_date;
+        document.getElementById('end_date').value += end_date;
+        document.getElementById('sensor_id').value += sensor_id;
+
+      });
 }
+
+function tableFaultyStats(stats) {
+    var data = new google.visualization.DataTable();
+    var cssClassNames = {
+        'headerRow': 'italic-darkblue-font large-font bold-font',
+        'tableRow': '',
+        'oddTableRow': 'beige-background',
+        'selectedTableRow': 'orange-background large-font',
+        'hoverTableRow': '',
+        'headerCell': 'gold-border',
+        'tableCell': '',
+        'rowNumberCell': 'underline-blue-font'};
+    data.addColumn('string', 'Sensor Id');
+    data.addColumn('number', 'Battery Level (%)');
+    data.addColumn('number', 'Soil Moisture (%)');
+    data.addColumn('number', 'Light (mol/m2/d)');
+    data.addColumn('number', 'Air Temperature (C)');
+    data.addColumn('string', 'Last Upload DateTime');
+    for (i = 0; i < stats.length; i++) {
+        data.addRow([stats[i][0][0],
+            stats[i][0][1],
+            stats[i][0][2],
+            stats[i][0][3],
+            stats[i][0][4],
+            stats[i][0][5]
+        ]);
+    };
+    var table = new google.visualization.Table(document.getElementById('faulty_stats_table'));
+    table.draw(data, {showRowNumber: true, width: '50%', height: '100%', cssClassNames: cssClassNames});
+    google.visualization.events.addListener(table, 'select', function() {
+        var row = table.getSelection()[0].row;
+        var sensor_id = data.getValue(row, 0);
+        var end_date = new Date(data.getValue(row, 5));
+        var start_date = new Date(data.getValue(row, 5));
+        start_date.setDate(start_date.getDate()-9);
+        var end_date = end_date.toISOString().slice(0,-5);
+        var start_date = start_date.toISOString().slice(0,-5);
+        document.getElementById('end_date').value = '';
+        document.getElementById('start_date').value = '';
+        document.getElementById('sensor_id').value = '';
+        document.getElementById('start_date').value += start_date;
+        document.getElementById('end_date').value += end_date;
+        document.getElementById('sensor_id').value += sensor_id;
+
+      });
+}
+
 
 function tableOwnerStats(stats) {
     var data = new google.visualization.DataTable();

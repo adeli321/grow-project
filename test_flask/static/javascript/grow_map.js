@@ -207,8 +207,9 @@ function drawGrowWowTemp(grow_air_temp, wow_air_temp, datetimes) {
     var options = {
         title: 'GROW/WOW Air Temperature Comparison',
         legend: {position: 'bottom'},
-        width: 1200,
-        height: 600,
+        // width: 1200,
+        height: 400,
+        backgroundColor: '#70d27d'
     };
     var chart = new google.visualization.LineChart(document.getElementById('grow_wow_temp_chart'));
     chart.draw(data, options);
@@ -244,8 +245,9 @@ function drawGrowWowRainfall(grow_soil_moisture, wow_rainfall, datetimes) {
     var options = {
         title: 'GROW/WOW Rainfall - Soil Moisture Comparison',
         legend: {position: 'bottom'},
-        width: 1200,
-        height: 600,
+        // width: 1200,
+        height: 400,
+        backgroundColor: '#70d27d'
     };
     var chart = new google.visualization.LineChart(document.getElementById('grow_wow_rainfall_chart'));
     chart.draw(data, options);
@@ -282,7 +284,10 @@ function drawGrowChart(air_temperature, soil_moisture, light) {
         legend: {position: 'bottom'},
         // width: 1200,
         height: 400,
-        backgroundColor: '#C2F3C8'
+        backgroundColor: '#ffffff'
+        // 70d27d
+        // '#35a744'
+        // backgroundColor: '#C2F3C8'
         // CAFFE1
     };
     var chart = new google.visualization.LineChart(document.getElementById('grow_line_chart'));
@@ -305,8 +310,9 @@ function drawWowChart(distance, air_temperature, datetimes, rainfall) {
     var options = {
         title: 'WOW Site ' + distance + ' km away',
         legend: {position: 'bottom'},
-        width: 1200,
-        height: 600,
+        // width: 1200,
+        height: 400,
+        backgroundColor: '#70d27d'
     };
     var chart = new google.visualization.LineChart(document.getElementById('wow_line_chart'));
     chart.draw(data, options);
@@ -354,7 +360,7 @@ function initMap(data) {
         
 
         addInfoWindow(marker, ('Address: ' + grow[sensor].address +
-            '<br>Owner Id: ' + grow[sensor].owner_id +
+            // '<br>Owner Id: ' + grow[sensor].owner_id +
             '<br>Days Active: ' + grow[sensor].days_active +
             '<br>Start Date: ' + grow[sensor].start_date +
             '<br>End Date: ' + grow[sensor].end_date +

@@ -33,9 +33,10 @@ def login() -> 'html':
 @app.route('/all_grow_map')
 def all_grow_map() -> 'html':
     with UseDatabase(aurora_creds) as cursor:
-        sql_select_sensors = """SELECT COUNT(tablename) 
-                        FROM pg_tables
-                        WHERE tablename LIKE ('grow_data_%');"""
+        # sql_select_sensors = """SELECT COUNT(tablename) 
+        #                 FROM pg_tables
+        #                 WHERE tablename LIKE ('grow_data_%');"""
+        sql_select_sensors = """select count(*) from all_sensor_info ;"""
         cursor.execute(sql_select_sensors)
         total_sensors = cursor.fetchone()[0]
         sql_select_healthy = """SELECT count(*)
@@ -189,6 +190,76 @@ def healthy_stats() -> 'JSON':
             results = cursor.fetchall()
             healthy_data.append(results)
     return jsonify(healthy_data)
+
+@app.route('/recovered_stats')
+def recovered_stats() -> 'JSON':
+    with UseDatabase(aurora_creds) as cursor:
+        # healthy_sensors = request.args.get('healthy_sensors')
+        # print(healthy_sensors)
+        owner = request.args.get('owner_id')
+        sql_recovered = sql.SQL("""SELECT sensor_id
+                            FROM all_sensor_info 
+                            WHERE sensor_id IN 
+                                (SELECT SUBSTRING(grow_table, 11, 8) 
+					            FROM grow_anomalies
+				   	            WHERE days_since_anomaly >= 2)
+                            AND sensor_id IN
+                                (SELECT sensor_id
+                                FROM all_sensor_info
+                                WHERE owner_id = {});""").format(sql.Literal(owner))
+        cursor.execute(sql_recovered)
+        recovered_sensors = [x[0] for x in cursor.fetchall()]
+        recovered_data = []
+        for i in recovered_sensors:
+            sql_select = sql.SQL("""SELECT sensor_id, 
+                                    battery_level, 
+                                    soil_moisture, 
+                                    light, 
+                                    air_temperature, 
+                                    datetime
+                                    FROM {}
+                                    WHERE datetime = (SELECT MAX(datetime)
+                                        FROM {})""").format(sql.Identifier(f'grow_data_{i}'),
+                                        sql.Identifier(f'grow_data_{i}'))
+            cursor.execute(sql_select)
+            results = cursor.fetchall()
+            recovered_data.append(results)
+    return jsonify(recovered_data)
+
+@app.route('/faulty_stats')
+def faulty_stats() -> 'JSON':
+    with UseDatabase(aurora_creds) as cursor:
+        # healthy_sensors = request.args.get('healthy_sensors')
+        # print(healthy_sensors)
+        owner = request.args.get('owner_id')
+        sql_faulty = sql.SQL("""SELECT sensor_id
+                            FROM all_sensor_info 
+                            WHERE sensor_id IN 
+                                (SELECT SUBSTRING(grow_table, 11, 8) 
+					            FROM grow_anomalies
+				   	            WHERE days_since_anomaly < 2)
+                            AND sensor_id IN
+                                (SELECT sensor_id
+                                FROM all_sensor_info
+                                WHERE owner_id = {});""").format(sql.Literal(owner))
+        cursor.execute(sql_faulty)
+        faulty_sensors = [x[0] for x in cursor.fetchall()]
+        faulty_data = []
+        for i in faulty_sensors:
+            sql_select = sql.SQL("""SELECT sensor_id, 
+                                    battery_level, 
+                                    soil_moisture, 
+                                    light, 
+                                    air_temperature, 
+                                    datetime
+                                    FROM {}
+                                    WHERE datetime = (SELECT MAX(datetime)
+                                        FROM {})""").format(sql.Identifier(f'grow_data_{i}'),
+                                        sql.Identifier(f'grow_data_{i}'))
+            cursor.execute(sql_select)
+            results = cursor.fetchall()
+            faulty_data.append(results)
+    return jsonify(faulty_data)
             
         
 
